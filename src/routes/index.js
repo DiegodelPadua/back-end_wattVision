@@ -56,6 +56,19 @@ import limiteRoutes from "./limiteRoutes.js";
 // Rotas de gerenciamento de alertas
 import alertaRoutes from "./alertaRoutes.js";
 
+
+import usuarioRoutes from "./usuarioRoutes.js";
+
+
+import authRoutes from "./authRoutes.js";
+
+
+// Middleware responsável por validar o token JWT.
+import authMiddleware from "../middlewares/authMiddleware.js";
+
+// Middleware responsável por verificar o perfil do usuário.
+import perfilMiddleware from "../middlewares/perfilMiddleware.js";
+
 // ==========================================
 // ROTEADOR PRINCIPAL DA APLICAÇÃO
 // ==========================================
@@ -114,7 +127,14 @@ router.use("/pzems", pzemRoutes);
 // ==========================================
 // REGISTRO DAS ROTAS - EMPRESAS
 // ==========================================
-router.use("/empresas", empresaRoutes);
+// Somente Administradores autenticados
+// podem acessar o módulo de empresas.
+router.use(
+    "/empresas",
+    authMiddleware,
+    perfilMiddleware("Administrador"),
+    empresaRoutes
+);
 
 // ==========================================
 // EXPORTAÇÃO DO ROTEADOR
@@ -125,19 +145,51 @@ router.use("/empresas", empresaRoutes);
 // ==========================================
 // REGISTRO DAS ROTAS - TARIFAS
 // ==========================================
-router.use("/tarifas", tarifaRoutes);
+// Somente Administradores autenticados
+// podem gerenciar tarifas de energia.
+router.use(
+    "/tarifas",
+    authMiddleware,
+    perfilMiddleware("Administrador"),
+    tarifaRoutes
+);
 
 
 // ==========================================
 // REGISTRO DAS ROTAS - LIMITES
 // ==========================================
-router.use("/limites", limiteRoutes);
+// Administradores e Gestores autenticados
+// podem acessar o módulo de limites.
+router.use(
+    "/limites",
+    authMiddleware,
+    perfilMiddleware("Administrador", "Gestor"),
+    limiteRoutes
+);
 
 
 // ==========================================
 // REGISTRO DAS ROTAS - ALERTAS
 // ==========================================
-router.use("/alertas", alertaRoutes);
+// Administradores e Gestores autenticados
+// podem acessar o módulo de alertas.
+router.use(
+    "/alertas",
+    authMiddleware,
+    perfilMiddleware("Administrador", "Gestor"),
+    alertaRoutes
+);
+
+
+// ==========================================
+// ROTAS DE USUÁRIOS
+// ==========================================
+router.use("/usuarios", usuarioRoutes);
+
+// ==========================================
+// AUTENTICAÇÃO DO WATT VISION
+// ==========================================
+router.use("/auth", authRoutes);
 
 
 

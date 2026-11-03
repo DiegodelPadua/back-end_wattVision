@@ -2,6 +2,9 @@
 import { Router } from "express";
 import localController from "../controllers/localController.js";
 
+import authMiddleware from "../middlewares/authMiddleware.js";
+import perfilMiddleware from "../middlewares/perfilMiddleware.js";
+
 // ==========================================
 // ROTAS - LOCAIS
 // ==========================================
@@ -9,6 +12,14 @@ import localController from "../controllers/localController.js";
 // e gerenciamento dos locais.
 
 const router = Router();
+
+// ======================================
+// SEGURANÇA - AUTENTICAÇÃO OBRIGATÓRIA
+// ======================================
+// Todas as operações de locais exigem
+// um usuário autenticado com JWT.
+
+router.use(authMiddleware);
 
 // Lista todos os locais.
 router.get("/", (req, res) =>
@@ -20,19 +31,37 @@ router.get("/:id", (req, res) =>
     localController.buscarPorId(req, res)
 );
 
-// Cadastra um local.
-router.post("/", (req, res) =>
-    localController.criar(req, res)
-);
 
-// Atualiza todos os campos editáveis do local.
-router.put("/:id", (req, res) =>
-    localController.atualizar(req, res)
-);
+    // ======================================
+    // POST - CADASTRAR LOCAL
+    // ======================================
+    // Somente Administradores podem cadastrar.
+    router.post(
+        "/",
+        perfilMiddleware("Administrador"),
+        (req, res) => localController.criar(req, res)
+    );
 
-// Altera somente o status do local.
-router.patch("/:id/status", (req, res) =>
-    localController.atualizarStatus(req, res)
-);
+    // ======================================
+    // PUT - ATUALIZAR LOCAL
+    // ======================================
+    // Somente Administradores podem atualizar.
+    router.put(
+        "/:id",
+        perfilMiddleware("Administrador"),
+        (req, res) => localController.atualizar(req, res)
+    );
+
+    // ======================================
+    // PATCH - ALTERAR STATUS DO LOCAL
+    // ======================================
+    // Somente Administradores podem alterar
+    // o status de um local.
+    router.patch(
+        "/:id/status",
+        perfilMiddleware("Administrador"),
+        (req, res) =>
+            localController.atualizarStatus(req, res)
+    );
 
 export default router;

@@ -1,6 +1,8 @@
 
 import localService from "../services/localService.js";
 
+import usuarioService from "../services/usuarioService.js";
+
 // ==========================================
 // CONTROLLER - LOCAIS
 // ==========================================
@@ -34,8 +36,11 @@ class LocalController {
     // ======================================
     async listarTodos(req, res) {
         try {
-            const locais = await localService.listarTodos();
-
+            // Retorna apenas os locais permitidos
+            // ao usuário autenticado.
+            const locais = await usuarioService.listarLocaisPermitidos(
+                req.usuario
+            );
             return res.status(200).json({
                 sucesso: true,
                 quantidade: locais.length,
@@ -51,10 +56,21 @@ class LocalController {
     // GET /api/locais/:id
     // ======================================
     async buscarPorId(req, res) {
+
         try {
+            // Verifica se o usuário autenticado
+            // possui permissão para acessar o local.
+            await usuarioService.verificarPermissaoLocal(
+                req.usuario,
+                req.params.id
+            );
+
+            // Busca o local somente após
+            // a autorização ser confirmada.
             const local = await localService.buscarPorId(
                 req.params.id
             );
+
 
             return res.status(200).json({
                 sucesso: true,
