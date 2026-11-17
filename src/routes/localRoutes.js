@@ -13,13 +13,23 @@ import perfilMiddleware from "../middlewares/perfilMiddleware.js";
 
 const router = Router();
 
+function autenticarQuandoNecessario(req, res, next) {
+    if (process.env.DEMO_MODE === "true") return next();
+    return authMiddleware(req, res, next);
+}
+
+function exigirAdministradorQuandoNecessario(req, res, next) {
+    if (process.env.DEMO_MODE === "true") return next();
+    return perfilMiddleware("Administrador")(req, res, next);
+}
+
 // ======================================
 // SEGURANÇA - AUTENTICAÇÃO OBRIGATÓRIA
 // ======================================
 // Todas as operações de locais exigem
 // um usuário autenticado com JWT.
 
-router.use(authMiddleware);
+router.use(autenticarQuandoNecessario);
 
 // Lista todos os locais.
 router.get("/", (req, res) =>
@@ -38,7 +48,7 @@ router.get("/:id", (req, res) =>
     // Somente Administradores podem cadastrar.
     router.post(
         "/",
-        perfilMiddleware("Administrador"),
+        exigirAdministradorQuandoNecessario,
         (req, res) => localController.criar(req, res)
     );
 
@@ -48,7 +58,7 @@ router.get("/:id", (req, res) =>
     // Somente Administradores podem atualizar.
     router.put(
         "/:id",
-        perfilMiddleware("Administrador"),
+        exigirAdministradorQuandoNecessario,
         (req, res) => localController.atualizar(req, res)
     );
 
@@ -59,7 +69,7 @@ router.get("/:id", (req, res) =>
     // o status de um local.
     router.patch(
         "/:id/status",
-        perfilMiddleware("Administrador"),
+        exigirAdministradorQuandoNecessario,
         (req, res) =>
             localController.atualizarStatus(req, res)
     );

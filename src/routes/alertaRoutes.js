@@ -1,6 +1,16 @@
 
 import { Router } from "express";
 import alertaController from "../controllers/alertaController.js";
+import authMiddleware from "../middlewares/authMiddleware.js";
+import perfilMiddleware from "../middlewares/perfilMiddleware.js";
+
+function exigirAdministradorQuandoAutenticacaoAtiva(req, res, next) {
+    if (process.env.DEMO_MODE === "true") return next();
+
+    return authMiddleware(req, res, () =>
+        perfilMiddleware("Administrador", "Gestor")(req, res, next)
+    );
+}
 
 // ==========================================
 // WATT VISION - ROTAS DE ALERTAS
@@ -29,12 +39,18 @@ router.get("/:id", (req, res) =>
 );
 
 // POST - Registrar alerta
-router.post("/", (req, res) =>
+router.post(
+    "/",
+    exigirAdministradorQuandoAutenticacaoAtiva,
+    (req, res) =>
     alertaController.criar(req, res)
 );
 
 // PATCH - Reconhecer alerta
-router.patch("/:id/reconhecer", (req, res) =>
+router.patch(
+    "/:id/reconhecer",
+    exigirAdministradorQuandoAutenticacaoAtiva,
+    (req, res) =>
     alertaController.reconhecer(req, res)
 );
 

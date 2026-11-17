@@ -14,6 +14,12 @@ const router = Router();
 // Todas as rotas exigem autenticação JWT.
 router.use(authMiddleware);
 
+// Qualquer usuário ativo pode alterar a própria senha.
+router.patch(
+    "/me/senha",
+    (req, res) => usuarioController.alterarMinhaSenha(req, res)
+);
+
 // GET - Listar usuários.
 // Apenas Administrador.
 router.get(
@@ -55,6 +61,13 @@ router.patch(
     "/:id/status",
     perfilMiddleware("Administrador"),
     (req, res) => usuarioController.atualizarStatus(req, res)
+);
+
+// Somente Administrador pode redefinir a senha de outro usuário.
+router.patch(
+    "/:id/senha",
+    perfilMiddleware("Administrador"),
+    (req, res) => usuarioController.redefinirSenha(req, res)
 );
 
 

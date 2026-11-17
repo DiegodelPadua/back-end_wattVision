@@ -288,10 +288,10 @@ class AlertaService {
             "Alerta"
         );
 
-        const idUsuarioValidado = this.validarId(
-            idUsuario,
-            "Usuário"
-        );
+        const modoDemonstracao = process.env.DEMO_MODE === "true";
+        const idUsuarioValidado = idUsuario === undefined && modoDemonstracao
+            ? null
+            : this.validarId(idUsuario, "Usuário");
 
         const alerta = await this.buscarPorId(
             idValidado
@@ -304,11 +304,7 @@ class AlertaService {
             );
         }
 
-        await this.verificarRegistro(
-            "tbl_usuario",
-            idUsuarioValidado,
-            "Usuário"
-        );
+        await this.verificarRegistro("tbl_usuario", idUsuarioValidado, "Usuário");
 
         const atualizado = await alertaRepository.reconhecer(
             idValidado,

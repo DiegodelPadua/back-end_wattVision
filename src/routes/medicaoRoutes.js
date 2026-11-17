@@ -60,7 +60,7 @@ router.get(
 //
 // Parâmetros:
 // id_pzem - Identificador do sensor
-// horas   - Período de 1 a 168 horas
+// horas   - Período de 1 a 720 horas (30 dias)
 
 router.get(
     "/serie-temporal",
