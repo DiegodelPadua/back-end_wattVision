@@ -198,6 +198,45 @@ class UsuarioController {
         }
     }
 
+    // ======================================
+    // PATCH - ALTERAR A PRÓPRIA SENHA
+    // ======================================
+    async alterarMinhaSenha(req, res) {
+        try {
+            await usuarioService.alterarMinhaSenha(
+                req.usuario.id,
+                req.body?.senhaAtual,
+                req.body?.novaSenha
+            );
+
+            return res.status(200).json({
+                sucesso: true,
+                mensagem: "Senha alterada com sucesso."
+            });
+        } catch (erro) {
+            return this.tratarErro(erro, res, "Erro ao alterar senha");
+        }
+    }
+
+    // ======================================
+    // PATCH - RESET ADMINISTRATIVO DE SENHA
+    // ======================================
+    async redefinirSenha(req, res) {
+        try {
+            await usuarioService.redefinirSenha(
+                req.params.id,
+                req.body?.novaSenha
+            );
+
+            return res.status(200).json({
+                sucesso: true,
+                mensagem: "Senha redefinida com sucesso."
+            });
+        } catch (erro) {
+            return this.tratarErro(erro, res, "Erro ao redefinir senha");
+        }
+    }
+
 
     // ======================================
     // POST - AUTORIZAR GESTOR EM UM LOCAL

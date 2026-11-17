@@ -367,6 +367,45 @@ class UsuarioService {
         );
     }
 
+    // ======================================
+    // PATCH - ALTERAR A PRÓPRIA SENHA
+    // ======================================
+    async alterarMinhaSenha(idUsuario, senhaAtual, novaSenha) {
+        const idValidado = this.validarId(idUsuario, "Usuário");
+
+        if (typeof senhaAtual !== "string" || !senhaAtual) {
+            throw this.criarErro("Informe a senha atual.");
+        }
+
+        const senhaNovaValidada = this.validarSenha(novaSenha);
+        const usuario = await usuarioRepository.buscarCredenciaisPorId(idValidado);
+
+        if (!usuario || usuario.status !== "Ativo") {
+            throw this.criarErro("Usuário não encontrado ou inativo.", 404);
+        }
+
+        const senhaAtualCorreta = await bcrypt.compare(senhaAtual, usuario.senha);
+        if (!senhaAtualCorreta) {
+            throw this.criarErro("A senha atual está incorreta.", 401);
+        }
+
+        const senhaHash = await bcrypt.hash(senhaNovaValidada, 12);
+        await usuarioRepository.atualizarSenha(idValidado, senhaHash);
+    }
+
+    // ======================================
+    // PATCH - RESET ADMINISTRATIVO DE SENHA
+    // ======================================
+    async redefinirSenha(id, novaSenha) {
+        const idValidado = this.validarId(id, "Usuário");
+        const senhaValidada = this.validarSenha(novaSenha);
+        const usuario = await this.buscarPorId(idValidado);
+        const senhaHash = await bcrypt.hash(senhaValidada, 12);
+
+        await usuarioRepository.atualizarSenha(idValidado, senhaHash);
+        return usuario;
+    }
+
 
     // ======================================
     // POST - AUTORIZAR GESTOR EM UM LOCAL

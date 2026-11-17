@@ -376,10 +376,9 @@ class MedicaoService {
     // ======================================
     // CONSULTAR SÉRIE TEMPORAL
     // ======================================
-    // Mantém o limite de 1 a 168 horas
-    // utilizado pelo sistema.
+    // Permite consultar até 30 dias de histórico.
 
-    async obterSerieTemporal(idPzem, horas = 24) {
+    async obterSerieTemporal(idPzem, horas = 24, filtros = {}) {
         const id = validarId(
             idPzem,
             "ID do PZEM"
@@ -393,16 +392,17 @@ class MedicaoService {
             (typeof horas === "string" && !horas.trim()) ||
             !Number.isInteger(periodo) ||
             periodo < 1 ||
-            periodo > 168
+            periodo > 720
         ) {
             throw criarErro(
-                "O período deve estar entre 1 e 168 horas."
+                "O período deve estar entre 1 e 720 horas."
             );
         }
 
         return await medicaoRepository.obterSerieTemporal(
             id,
-            periodo
+            periodo,
+            filtros
         );
     }
 

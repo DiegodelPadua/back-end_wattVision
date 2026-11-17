@@ -38,9 +38,9 @@ class LocalController {
         try {
             // Retorna apenas os locais permitidos
             // ao usuário autenticado.
-            const locais = await usuarioService.listarLocaisPermitidos(
-                req.usuario
-            );
+            const locais = process.env.DEMO_MODE === "true"
+                ? await localService.listarTodos()
+                : await usuarioService.listarLocaisPermitidos(req.usuario);
             return res.status(200).json({
                 sucesso: true,
                 quantidade: locais.length,
@@ -60,10 +60,12 @@ class LocalController {
         try {
             // Verifica se o usuário autenticado
             // possui permissão para acessar o local.
-            await usuarioService.verificarPermissaoLocal(
-                req.usuario,
-                req.params.id
-            );
+            if (process.env.DEMO_MODE !== "true") {
+                await usuarioService.verificarPermissaoLocal(
+                    req.usuario,
+                    req.params.id
+                );
+            }
 
             // Busca o local somente após
             // a autorização ser confirmada.

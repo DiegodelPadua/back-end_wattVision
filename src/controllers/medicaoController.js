@@ -152,7 +152,7 @@ class MedicaoController {
 
     async obterSerieTemporal(req, res) {
         try {
-            const { id_pzem, horas } = req.query;
+            const { id_pzem, horas, local, setor, equipamento } = req.query;
 
             // Se horas não for informado,
             // utiliza o padrão de 24 horas.
@@ -162,7 +162,8 @@ class MedicaoController {
             const medicoes =
                 await medicaoService.obterSerieTemporal(
                     id_pzem,
-                    periodo
+                    periodo,
+                    { local, setor, equipamento }
                 );
 
             return res.status(200).json({

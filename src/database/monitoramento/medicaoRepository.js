@@ -271,16 +271,16 @@ class MedicaoRepository {
     async buscarUltima() {
         const [rows] = await database.query(`
             SELECT
-                id,
-                id_pzem,
-                id_ponto_medicao,
-                data_hora,
-                tensao,
-                corrente,
-                potencia_ativa,
-                energia_acumulada,
-                frequencia,
-                fator_potencia
+                m.id,
+                m.id_pzem,
+                m.id_ponto_medicao,
+                m.data_hora,
+                m.tensao,
+                m.corrente,
+                m.potencia_ativa,
+                m.energia_acumulada,
+                m.frequencia,
+                m.fator_potencia
             FROM tbl_medicao
             ORDER BY data_hora DESC, id DESC
             LIMIT 1
@@ -293,34 +293,51 @@ class MedicaoRepository {
     // CONSULTAR SÉRIE TEMPORAL
     // ======================================
     // Retorna o histórico de um PZEM nas
-    // últimas horas para gráficos e análises.
+    // últimas horas para gráficos e análises (até 30 dias).
     //
     // Limita a consulta a 10.000 registros.
 
-    async obterSerieTemporal(idPzem, horas) {
+    async obterSerieTemporal(idPzem, horas, filtros = {}) {
+        const local = typeof filtros.local === 'string' && filtros.local.trim() ? filtros.local.trim() : null;
+        const setor = typeof filtros.setor === 'string' && filtros.setor.trim() ? filtros.setor.trim() : null;
+        const equipamento = typeof filtros.equipamento === 'string' && filtros.equipamento.trim() ? filtros.equipamento.trim() : null;
+
         const [medicoes] = await database.query(
             `
             SELECT
-                id,
-                id_pzem,
-                id_ponto_medicao,
-                data_hora,
-                tensao,
-                corrente,
-                potencia_ativa,
-                energia_acumulada,
-                frequencia,
-                fator_potencia
-            FROM tbl_medicao
-            WHERE id_pzem = ?
-              AND data_hora >= DATE_SUB(
+                m.id,
+                m.id_pzem,
+                m.id_ponto_medicao,
+                m.data_hora,
+                m.tensao,
+                m.corrente,
+                m.potencia_ativa,
+                m.energia_acumulada,
+                m.frequencia,
+                m.fator_potencia
+            FROM tbl_medicao m
+            INNER JOIN tbl_pzem p
+                ON p.id = m.id_pzem
+            LEFT JOIN tbl_ponto_medicao pm
+                ON pm.id = p.id_ponto_medicao
+            LEFT JOIN tbl_equipamento e
+                ON e.id = pm.id_equipamento
+            LEFT JOIN tbl_setor s
+                ON s.id = COALESCE(pm.id_setor, e.id_setor)
+            LEFT JOIN tbl_local l
+                ON l.id = COALESCE(pm.id_local, s.id_local)
+            WHERE m.id_pzem = ?
+              AND m.data_hora >= DATE_SUB(
                   NOW(),
                   INTERVAL ? HOUR
               )
-            ORDER BY data_hora ASC, id ASC
+              AND (? IS NULL OR l.nome = ?)
+              AND (? IS NULL OR s.nome = ?)
+              AND (? IS NULL OR e.nome = ?)
+            ORDER BY m.data_hora ASC, m.id ASC
             LIMIT 10000
             `,
-            [idPzem, horas]
+            [idPzem, horas, local, local, setor, setor, equipamento, equipamento]
         );
 
         return medicoes;

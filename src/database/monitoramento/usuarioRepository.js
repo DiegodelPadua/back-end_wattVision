@@ -108,6 +108,26 @@ class UsuarioRepository {
         return usuarios[0] ?? null;
     }
 
+    // Busca as credenciais de um usuário pelo ID exclusivamente
+    // para validar a troca de senha.
+    async buscarCredenciaisPorId(id) {
+        const [usuarios] = await database.query(
+            `SELECT
+                id,
+                id_empresa,
+                nome,
+                email,
+                senha,
+                perfil,
+                status
+             FROM tbl_usuario
+             WHERE id = ?`,
+            [id]
+        );
+
+        return usuarios[0] ?? null;
+    }
+
     // ======================================
     // GET - LISTAR USUÁRIOS POR EMPRESA
     // ======================================
@@ -194,6 +214,18 @@ class UsuarioRepository {
              SET status = ?
              WHERE id = ?`,
             [status, id]
+        );
+
+        return resultado.affectedRows > 0;
+    }
+
+    // Atualiza somente o hash da senha.
+    async atualizarSenha(id, senhaHash) {
+        const [resultado] = await database.query(
+            `UPDATE tbl_usuario
+             SET senha = ?
+             WHERE id = ?`,
+            [senhaHash, id]
         );
 
         return resultado.affectedRows > 0;

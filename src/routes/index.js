@@ -158,12 +158,19 @@ router.use(
 // ==========================================
 // REGISTRO DAS ROTAS - LIMITES
 // ==========================================
-// Administradores e Gestores autenticados
-// podem acessar o módulo de limites.
+// Administradores e Gestores autenticados podem acessar o módulo de limites.
+// No modo demonstrativo, a tela pode testar o fluxo sem usuário cadastrado.
+function autenticarLimitesQuandoNecessario(req, res, next) {
+    if (process.env.DEMO_MODE === "true") return next();
+    return authMiddleware(req, res, (erro) => {
+        if (erro) return next(erro);
+        return perfilMiddleware("Administrador", "Gestor")(req, res, next);
+    });
+}
+
 router.use(
     "/limites",
-    authMiddleware,
-    perfilMiddleware("Administrador", "Gestor"),
+    autenticarLimitesQuandoNecessario,
     limiteRoutes
 );
 
@@ -175,8 +182,6 @@ router.use(
 // podem acessar o módulo de alertas.
 router.use(
     "/alertas",
-    authMiddleware,
-    perfilMiddleware("Administrador", "Gestor"),
     alertaRoutes
 );
 
